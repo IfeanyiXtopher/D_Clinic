@@ -23,7 +23,7 @@ and a **Verify** command or check that proves it is done. Nothing is marked
 
 ## Current position
 
-> **Step 1 — Data foundation and synthetic cohort: `[x]` done. Next: Step 2 (missed-visit risk model).**
+> **Step 2 — Missed-visit risk model: `[x]` done. Next: Step 3 (optimized worklist).**
 
 ## Prerequisites on the developer machine
 
@@ -87,25 +87,29 @@ generator producing a realistic 24-month program history, plus an EDA notebook.
 
 ---
 
-## Step 2 — Predictive model: missed follow-up risk `[ ]`
+## Step 2 — Predictive model: missed follow-up risk `[x]`
 
 **Goal.** A calibrated, explainable model predicting that a scheduled visit
 will be missed, with a cold-start path for new patients and a fairness audit.
 
-1. `[ ]` 2.1 Label definition: `missed = 1` if no visit within 7 days after `scheduled_date`.
-2. `[ ]` 2.2 `ml/features.py` (Pandas, only pre-visit information), with tests for leakage.
-3. `[ ]` 2.3 Patient-and-time split: train months 1–18, valid 19–21, test 22–24.
-4. `[ ]` 2.4 Baselines: rules; logistic regression. Candidate: gradient boosting.
-5. `[ ]` 2.5 Metrics: AUC, PR-AUC, Brier, calibration curve, **precision at worklist capacity (top-20 per facility per day)**.
-6. `[ ]` 2.6 MLflow tracking (local SQLite) for every run.
-7. `[ ]` 2.7 `ml/cold_start.py`: group estimate (facility × condition × drug-count band × age band, min group 30) with partial pooling `k=3`; output `basis` and `group_size`. Ethnicity/religion/region never features.
-8. `[ ]` 2.8 `notebooks/03_fairness_and_calibration.ipynb`: subgroup calibration and selection rate at capacity by sex, age band, facility, region.
-9. `[ ]` 2.9 `docs/model_cards/missed_visit_risk.md`.
-10. `[ ]` 2.10 `POST /risk/score` endpoint and nightly Celery task writing `risk_scores`.
+1. `[x]` 2.1 Label: `missed = 1` if no BP recorded in `[scheduled − 3 d, scheduled + 7 d]`; cancelled appointments excluded; only closed windows labelled.
+2. `[x]` 2.2 `ml/features.py`: 27 features computed strictly as of booking time (history, streaks, latest BP and change, ladder step, prior calls, time-aware facility rate, lead time, season, distance band). `tests/test_features.py` injects future BPs/calls/prescriptions and asserts features are unchanged — this test **caught a real leak** (facility-rate fill used a dataset-wide mean) which was fixed with a fixed prior.
+3. `[x]` 2.3 Split: patients hashed into pools 60/15/25 **and** time-cut (train < 2026-03-01, valid Mar–May 2026, test ≥ 2026-06-01). Train 13,422 / valid 977 / test 2,028 rows.
+4. `[x]` 2.4 Rule score, logistic regression, histogram gradient boosting. Selection rule: logistic unless boosting wins validation AUC by > 0.01 → **logistic selected**.
+5. `[x]` 2.5 Metrics: AUC, PR-AUC, Brier, log-loss, ECE, calibration table, **precision/recall at worklist capacity** (top 30% within each facility-week — changed from a fixed top-20, which selected nearly everything in the smaller test pool).
+6. `[x]` 2.6 MLflow tracking to `mlflow.db` (experiment `missed_visit_risk`), optional import so training never depends on it.
+7. `[x]` 2.7 `ml/cold_start.py`: partial pooling `k = 3`; groups facility × diabetes × drug count × age band with back-off (min 30); outputs `basis`, `group_size`, `group_level`; pooled rate is also a model feature. Test asserts no protected attribute in groups.
+8. `[x]` 2.8 `notebooks/02_missed_visit_model.ipynb` (ROC/PR, ceiling, precision-vs-list-size, calibration, coefficients, cold start, example reasons) and `notebooks/03_fairness_and_calibration.ipynb` (tables by sex/age/distance/region/facility, selection vs base rate, in-group calibration, region gap decomposed by distance, bootstrap interval for the smallest group, promotion gate).
+9. `[x]` 2.9 `docs/model_cards/missed_visit_risk.md`.
+10. `[x]` 2.10 `POST /risk/score`, `GET /risk/appointments/{id}`, `GET /risk/patients/{id}` in `app/main.py`; `risk_scores` table + `latest_risk_scores` view (migration 0003); Celery task `score_upcoming_appointments` on a 02:00 beat schedule (`worker/`). Reasons come only from positive-coefficient, actionable features (fixed a bug where good history rendered as "history of missed visits").
 
-**Artifact.** Trained model file with version; model card; notebooks 02 and 03; scoring endpoint.
+**Artifact.** `ml/artifacts/missed_visit_v1.joblib`; `docs/eval_reports/missed_visit_model.md`; model card; notebooks 02 & 03; API + worker; 2,373 upcoming appointments scored in `risk_scores`.
 
-**Verify.** `make train` reproduces the reported metrics within tolerance; `pytest tests/test_features.py tests/test_cold_start.py` green; model card contains subgroup table.
+**Verify.** `make train` → test AUC 0.648, precision@30% 0.438 vs base 0.295 (lift 1.49); `make test` → 31 passed (generator, features/leakage, cold start, API, eager Celery task); report contains the signal-ceiling and subgroup tables.
+
+**Measured on 2026-09-26 (test, n = 2,028).** rules AUC 0.626 / lift 1.43; **logistic 0.648 / 1.49**; boosting 0.649 / 1.47. Oracle ceiling from hidden propensity: 0.681 (0.704 with known effects). ECE 0.02. Cold-start `group` rows: predicted 0.289 vs observed 0.280. Fairness: no under-selection of any frequently-missing group; smallest region over-selected by 0.107 [0.028, 0.192] — logged as a monitoring item (see notebook 03 for reasoning).
+
+**Open item.** Docker Desktop was not running, so the live Redis broker was not exercised; the Celery task is tested in eager mode. Start Docker and run `make up && make worker && make beat` to run the nightly schedule for real.
 
 ---
 
@@ -254,3 +258,4 @@ exported to GGUF, served by Ollama, evaluated against the base model.
 | --- | --- | --- |
 | 2026-09-26 | 0 | Repository initialized, tracker and ADRs written. |
 | 2026-09-26 | 1 | Simple-shaped schema (12 tables, 6 views) migrated into local `d_clinic`; synthetic generator (6,000 patients) loaded; 11 invariant tests green; EDA notebook executed. Generator tuned twice: return-to-care probabilities raised (overdue 67% → 48%), lead-time effect strengthened so >60 d is the riskiest band. |
+| 2026-09-26 | 2 | Feature pipeline with leakage test (caught and fixed a facility-rate leak); rules vs logistic vs boosting with strict patient+time split; logistic selected (test AUC 0.648, lift 1.49 at 30% capacity, ceiling 0.70); partial-pooling cold start; fairness notebook with bootstrap; model card; `risk_scores` table, API endpoints, Celery nightly task; 31 tests green. |

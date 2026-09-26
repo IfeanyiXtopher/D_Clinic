@@ -33,4 +33,27 @@ test:  ## Run backend tests
 eda:  ## Execute the EDA notebook in place
 	$(PY) -m jupyter nbconvert --to notebook --execute --inplace notebooks/01_eda.ipynb
 
-.PHONY: help venv up down migrate synth seed test eda
+train:  ## Train the missed-visit model from the database; write artifact, report, MLflow run
+	cd $(BACKEND) && LOKY_MAX_CPU_COUNT=4 ../$(PY) -m ml.train
+
+score:  ## Score upcoming appointments (next 60 days) and persist to risk_scores
+	cd $(BACKEND) && LOKY_MAX_CPU_COUNT=4 ../$(PY) -c "from app.db import engine; from ml.predict import score_upcoming, write_scores; s=score_upcoming(engine); print('scored', write_scores(s, engine)); print(s.band.value_counts().to_dict())"
+
+notebooks:  ## Rebuild and execute the modelling and fairness notebooks
+	$(PY) notebooks/build_02_03.py
+	for n in 02_missed_visit_model 03_fairness_and_calibration; do \
+	  LOKY_MAX_CPU_COUNT=4 $(PY) -m jupyter nbconvert --to notebook --execute --inplace --ExecutePreprocessor.timeout=600 notebooks/$$n.ipynb; done
+
+api:  ## Run the FastAPI app on :8000
+	cd $(BACKEND) && ../$(PY) -m uvicorn app.main:app --reload --port 8000
+
+worker:  ## Run a Celery worker (needs redis: make up)
+	cd $(BACKEND) && ../$(PY) -m celery -A worker.celery_app worker -l info
+
+beat:  ## Run the Celery beat scheduler (exactly one instance)
+	cd $(BACKEND) && ../$(PY) -m celery -A worker.celery_app beat -l info
+
+mlflow:  ## Open the MLflow UI on :5000
+	$(PY) -m mlflow ui --backend-store-uri sqlite:///mlflow.db --port 5000
+
+.PHONY: help venv up down migrate synth seed test eda train score notebooks api worker beat mlflow

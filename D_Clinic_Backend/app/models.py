@@ -26,7 +26,7 @@ from sqlalchemy import (
     String,
     Text,
 )
-from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy.dialects.postgresql import JSONB, UUID
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 
 
@@ -264,4 +264,33 @@ class Communication(Base):
     __table_args__ = (
         Index("index_communications_on_patient_id", "patient_id"),
         Index("index_communications_on_appointment_id", "appointment_id"),
+    )
+
+
+# --------------------------------------------------------------------------- project tables
+# The tables below are ours, not Simple's. They hold model outputs and audit records.
+
+
+class RiskScore(Base):
+    """One row per scoring run per appointment. History is kept; `latest_risk_scores` view picks the newest."""
+
+    __tablename__ = "risk_scores"
+
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=_uuid)
+    appointment_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("appointments.id"), nullable=False)
+    patient_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("patients.id"), nullable=False)
+    facility_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("facilities.id"), nullable=False)
+    scheduled_date: Mapped[date] = mapped_column(Date, nullable=False)
+    p_missed: Mapped[float] = mapped_column(Numeric(6, 4), nullable=False)
+    band: Mapped[str] = mapped_column(String, nullable=False)  # low, medium, high
+    basis: Mapped[str] = mapped_column(String, nullable=False)  # group, mixed, personal
+    group_size: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    group_level: Mapped[str | None] = mapped_column(String)
+    reasons: Mapped[list] = mapped_column(JSONB, nullable=False, default=list)
+    model_version: Mapped[str] = mapped_column(String, nullable=False)
+    scored_at: Mapped[datetime] = mapped_column(DateTime, nullable=False)
+
+    __table_args__ = (
+        Index("index_risk_scores_on_appointment_id_and_scored_at", "appointment_id", "scored_at"),
+        Index("index_risk_scores_on_facility_id_and_scheduled_date", "facility_id", "scheduled_date"),
     )

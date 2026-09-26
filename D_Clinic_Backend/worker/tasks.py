@@ -1,0 +1,28 @@
+from __future__ import annotations
+
+import logging
+
+from worker.celery_app import celery
+
+log = logging.getLogger(__name__)
+
+
+@celery.task(name="worker.tasks.score_upcoming_appointments", bind=True, max_retries=2, default_retry_delay=300)
+def score_upcoming_appointments(self, horizon_days: int = 60, facility_id: str | None = None) -> dict:
+    """Nightly risk scoring. Idempotent per night: rows are appended with `scored_at`, and
+    `latest_risk_scores` always shows the newest, so a retry cannot corrupt earlier results."""
+    from app.db import engine
+    from ml.predict import score_upcoming, write_scores
+
+    try:
+        scores = score_upcoming(engine, horizon_days=horizon_days, facility_id=facility_id)
+        n = write_scores(scores, engine)
+    except Exception as exc:  # pragma: no cover - retried by Celery
+        log.exception("scoring failed")
+        raise self.retry(exc=exc)
+    summary = {"scored": int(n)}
+    if n:
+        summary["bands"] = scores.band.value_counts().to_dict()
+        summary["basis"] = scores.basis.value_counts().to_dict()
+    log.info("scored %s upcoming appointments: %s", n, summary)
+    return summary
