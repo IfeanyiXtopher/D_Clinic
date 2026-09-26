@@ -1,0 +1,36 @@
+# OS
+.DS_Store
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Environment / secrets
+.env
+.env.*
+!.env.example
+
+# Data and models (large or generated)
+data/synth/out/
+*.gguf
+*.safetensors
+mlruns/
+mlflow.db
+models/
+
+# Notebooks
+.ipynb_checkpoints/
+
+# Node
+node_modules/
+D_Clinic_Frontend/dist/
+
+# Docker volumes
+pgdata/
+redisdata/
