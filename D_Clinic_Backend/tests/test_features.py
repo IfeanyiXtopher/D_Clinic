@@ -55,16 +55,19 @@ def test_features_do_not_change_when_future_events_are_added(tables):
     base = build_feature_table(tables, AS_OF).frame.set_index("appointment_id")
     t2 = {k: v.copy() for k, v in tables.items()}
     # inject a late BP, a late call and a late prescription for every patient
-    late = pd.Timestamp("2026-09-20 10:00")
+    # Inject on the day *after* as_of so same-day visit BPs (legitimately known at booking)
+    # are not confused with leakage. Features of every already-booked appointment must stay put.
+    late = AS_OF + pd.Timedelta(days=1, hours=10)
     pids = t2["patients"].patient_id
     t2["blood_pressures"] = pd.concat([t2["blood_pressures"], pd.DataFrame(
         {"patient_id": pids, "systolic": 199, "diastolic": 120, "recorded_at": late})])
     t2["call_results"] = pd.concat([t2["call_results"], pd.DataFrame(
-        {"patient_id": pids, "result_type": "removed_from_overdue_list", "device_created_at": late})])
+        {"patient_id": pids, "appointment_id": t2["appointments"].appointment_id.iloc[0],
+         "result_type": "removed_from_overdue_list", "device_created_at": late})])
     t2["prescription_drugs"] = pd.concat([t2["prescription_drugs"], pd.DataFrame(
         {"patient_id": pids, "device_created_at": late, "is_deleted": False, "device_updated_at": late})])
     new = build_feature_table(t2, AS_OF).frame.set_index("appointment_id")
-    early = base[pd.to_datetime(base.booked_at) < late].index
+    early = base.index
     pd.testing.assert_frame_equal(base.loc[early, FEATURES], new.loc[early, FEATURES], check_like=True)
 
 

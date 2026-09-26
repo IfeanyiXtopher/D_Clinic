@@ -26,5 +26,10 @@ celery.conf.update(
             "schedule": crontab(hour=2, minute=0),
             "kwargs": {"horizon_days": 60},
         },
+        # 06:00 local: build every facility's worklist for the day, before the clinic opens.
+        "build-daily-worklists": {
+            "task": "worker.tasks.build_daily_worklists",
+            "schedule": crontab(hour=6, minute=0),
+        },
     },
 )

@@ -23,7 +23,7 @@ and a **Verify** command or check that proves it is done. Nothing is marked
 
 ## Current position
 
-> **Step 2 — Missed-visit risk model: `[x]` done. Next: Step 3 (optimized worklist).**
+> **Step 3 — Optimized worklist: `[x]` done. Next: Step 4 (patient summary for the health worker).**
 
 ## Prerequisites on the developer machine
 
@@ -113,20 +113,24 @@ will be missed, with a cold-start path for new patients and a fairness audit.
 
 ---
 
-## Step 3 — Optimized worklist for frontline workers `[ ]`
+## Step 3 — Optimized worklist for frontline workers `[x]`
 
 **Goal.** A ranked, capacity-limited, explainable daily list that beats
-"sort by days overdue" on returns-within-15-days per call.
+"sort by days overdue" on extra returns per call.
 
-1. `[ ]` 3.1 Worklist rules: skip `agreed_to_visit` < 15 days; resurface `remind_to_call_later`; drop died/moved/refused; protect slots for uncontrolled BP; capacity default 20.
-2. `[ ]` 3.2 `GET /worklist?facility=&date=` with reasons, basis badge, suggested action.
-3. `[ ]` 3.3 `POST /call-results` using Simple's exact `result_type` and `remove_reason` values.
-4. `[ ]` 3.4 Celery Beat builds lists at 06:00 facility time; on-demand rebuild.
-5. `[ ]` 3.5 Replay evaluation on synthetic history: risk-ranked vs days-overdue on return-within-15-days per call → `docs/eval_reports/worklist.md`.
+1. `[x]` 3.1 `ml/worklist.py`: eligibility as of a date (skip `agreed_to_visit` < 15 days; resurface `remind_to_call_later` on `remind_on` or +7 days; drop removals and LTFU; phone-first ranking). Capacity default 20 with 25% protected slots for uncontrolled BP. Pre-visit section: up to 5 high-risk visits in the next 7 days.
+2. `[x]` 3.2 `GET /worklist?facility_id=&date=&rebuild=` returns overdue + pre-visit items with rank, band, basis, reasons, suggested action (`call` / `call_back` / `home_visit` / `reminder_call`). Identity fields are never in the payload. `worklist_items` table (migration 0004); rebuild keeps items that already have a call result.
+3. `[x]` 3.3 `POST /call-results` with Simple's exact `result_type` / `remove_reason`. Updates the appointment (`agreed_to_visit`, `remind_on`, or cancel + patient status) and closes the worklist item. `POST /worklist/items/{id}/skip`.
+4. `[x]` 3.4 Celery Beat `build-daily-worklists` at 06:00 Africa/Lagos; first GET builds on demand. Idempotent: a second beat run is a no-op unless `rebuild=true`.
+5. `[x]` 3.5 Replay (`ml/worklist_eval.py`): weekly snapshots on the **test-pool** only, capacity 25/facility-week. Strategies: days-overdue, random, risk, oracle. Headline metric is **counterfactual extra returns per 100 calls** (using the generator's known return functions), with an observational 15-day return table for transparency.
 
-**Artifact.** Worklist API and evaluation report.
+**Artifact.** Worklist API + persistence; `docs/eval_reports/worklist.md`; 10 worklist tests.
 
-**Verify.** `make eval-worklist` writes the report; `pytest tests/test_worklist.py` green.
+**Verify.** `make eval-worklist` writes the report; `make test` → 41 passed.
+
+**Measured on 2026-09-27 (15 weeks, test pool).** Extra returns per 100 calls: days-overdue **18.2**, random 18.5, **risk 20.9 (+15%)**, oracle 27.1. Bootstrap of risk − days-overdue: **+2.7 [+2.2, +3.3]**. List overlap 36%. Observational 15-day return among those actually called that week: risk 44% (n=95) vs random 39% (n=76); longest-overdue selections were almost never called in the data (they are months late). Side effect logged: cold-start patients are 5% of the risk list vs 17% of longest-overdue-first — protect slots for new patients if the program wants that.
+
+**Also in this step.** Generator return-to-care probabilities are now explicit functions of the hidden propensity (`p_return_after_call` / `p_return_no_call`) so the replay has a known counterfactual. Leakage test updated: same-day visit BP is allowed at booking; injected events must fall on a later calendar day.
 
 ---
 
@@ -259,3 +263,4 @@ exported to GGUF, served by Ollama, evaluated against the base model.
 | 2026-09-26 | 0 | Repository initialized, tracker and ADRs written. |
 | 2026-09-26 | 1 | Simple-shaped schema (12 tables, 6 views) migrated into local `d_clinic`; synthetic generator (6,000 patients) loaded; 11 invariant tests green; EDA notebook executed. Generator tuned twice: return-to-care probabilities raised (overdue 67% → 48%), lead-time effect strengthened so >60 d is the riskiest band. |
 | 2026-09-26 | 2 | Feature pipeline with leakage test (caught and fixed a facility-rate leak); rules vs logistic vs boosting with strict patient+time split; logistic selected (test AUC 0.648, lift 1.49 at 30% capacity, ceiling 0.70); partial-pooling cold start; fairness notebook with bootstrap; model card; `risk_scores` table, API endpoints, Celery nightly task; 31 tests green. |
+| 2026-09-27 | 3 | Daily worklist with Simple eligibility rules, protected slots for uncontrolled BP, call-result API, 06:00 Celery build. Replay: risk ranking +15% extra returns per 100 calls vs longest-overdue-first (+2.7 [+2.2, +3.3]); 41 tests green. |

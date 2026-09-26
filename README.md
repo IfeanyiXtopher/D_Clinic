@@ -29,7 +29,7 @@ eval/               promptfoo configs and evaluation runner
 docs/               build plan, ADRs, model cards, evaluation reports, responsible AI
 ```
 
-## Running (Step 1 state)
+## Running (through Step 3)
 
 Prerequisites: Python 3.11+, Docker, and a PostgreSQL database you can reach
 (or use the containerised one).
@@ -39,12 +39,16 @@ cp .env.example .env            # set PG_* to your database
 make venv                       # virtualenv + backend deps
 make up                         # redis  (add PROFILE=db for a PostgreSQL+pgvector container)
 make seed                       # migrate, generate 6,000 synthetic patients, load
-make test                       # generator invariants
-make eda                        # execute notebooks/01_eda.ipynb against the database
+make train                      # missed-visit model + report
+make score                      # score upcoming appointments
+make eval-worklist              # replay risk vs days-overdue worklists
+make test                       # 41 tests (generator, features, cold start, risk API, worklist)
+make api                        # FastAPI on :8000
 ```
 
-Program definitions (overdue, under care, lost to follow-up, controlled) are in
-[`docs/definitions.md`](docs/definitions.md).
+Useful endpoints: `GET /worklist?facility_id=&date=`, `POST /call-results`, `POST /risk/score`.
+Program definitions are in [`docs/definitions.md`](docs/definitions.md).
+The worklist replay report is [`docs/eval_reports/worklist.md`](docs/eval_reports/worklist.md).
 
 ## Licence
 

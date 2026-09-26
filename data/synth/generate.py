@@ -135,6 +135,25 @@ NOISE_MAP = {"come": "cme", "tomorrow": "tomorow", "please": "pls", "appointment
 # ----------------------------------------------------------------------------
 
 
+def _logit(p: float) -> float:
+    return math.log(p / (1 - p))
+
+
+# Return-to-care behaviour after a missed visit depends on the hidden propensity `theta`.
+# Patients who miss for circumstantial reasons (low theta) mostly come back on their own; hard-to-reach
+# patients (high theta) rarely return unaided and return somewhat less even after a call. The *uplift*
+# of a call (p_call - p_no_call) therefore grows with theta: calls help most where they are most needed.
+# These functions are imported by the worklist evaluation to compute counterfactual uplift.
+def p_return_after_call(theta: float) -> float:
+    """P(visit within 15 days | called and agreed to visit)."""
+    return _sigmoid(_logit(0.65) - 0.35 * theta)
+
+
+def p_return_no_call(theta: float) -> float:
+    """P(visit within ~45 days | no call made)."""
+    return _sigmoid(_logit(0.50) - 0.80 * theta)
+
+
 def _sigmoid(x: float) -> float:
     return 1.0 / (1.0 + math.exp(-x))
 
@@ -467,13 +486,13 @@ class Generator:
                 offset = (call_day - scheduled).days
                 if result == "agreed_to_visit":
                     appt["agreed_to_visit"] = True
-                    if rng.random() < 0.65:
+                    if rng.random() < p_return_after_call(st.theta):
                         return_days = offset + int(rng.integers(1, 15))
                     elif rng.random() < 0.50:
                         return_days = offset + int(rng.integers(15, 60))
                 elif result == "remind_to_call_later":
                     appt["remind_on"] = call_day + timedelta(days=7)
-                    if rng.random() < 0.50:
+                    if rng.random() < 0.50 * p_return_after_call(st.theta) / 0.65:
                         return_days = offset + int(rng.integers(3, 30))
                 else:
                     if reason == "dead":
@@ -497,8 +516,8 @@ class Generator:
                         if rng.random() < 0.20:
                             return_days = offset + int(rng.integers(10, 60))
             else:
-                # no call happened
-                if rng.random() < 0.50:
+                # no call happened: spontaneous return depends strongly on the hidden propensity
+                if rng.random() < p_return_no_call(st.theta):
                     return_days = int(rng.integers(8, 45))
                 elif rng.random() < 0.40:
                     return_days = int(rng.integers(45, 120))

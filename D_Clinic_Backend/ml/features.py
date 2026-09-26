@@ -94,16 +94,17 @@ def load_tables_from_db(engine) -> dict[str, pd.DataFrame]:
                               p.recorded_at AS registered_at, p.assigned_facility_id,
                               a.zone AS distance_band, a.state AS region,
                               (mh.diabetes = 'yes') AS diabetic,
-                              EXISTS (SELECT 1 FROM patient_phone_numbers ph WHERE ph.patient_id = p.id) AS has_phone
+                              EXISTS (SELECT 1 FROM patient_phone_numbers ph
+                                      WHERE ph.patient_id = p.id AND ph.active) AS has_phone
                        FROM patients p
                        JOIN addresses a ON a.patient_id = p.id
                        JOIN medical_histories mh ON mh.patient_id = p.id""",
         "appointments": """SELECT id AS appointment_id, patient_id, facility_id, scheduled_date, status,
-                                  device_created_at AS booked_at FROM appointments""",
+                                  remind_on, device_created_at AS booked_at, device_updated_at FROM appointments""",
         "blood_pressures": "SELECT patient_id, systolic, diastolic, recorded_at FROM blood_pressures WHERE deleted_at IS NULL",
         "prescription_drugs": """SELECT patient_id, device_created_at, is_deleted, device_updated_at
                                  FROM prescription_drugs WHERE is_protocol_drug""",
-        "call_results": "SELECT patient_id, result_type, device_created_at FROM call_results",
+        "call_results": "SELECT patient_id, appointment_id, result_type, remove_reason, device_created_at FROM call_results",
     }
     return {k: pd.read_sql(v, engine) for k, v in sql.items()}
 
@@ -125,13 +126,16 @@ def load_tables_from_csv(directory) -> dict[str, pd.DataFrame]:
         .assign(has_phone=lambda x: x.patient_id.isin(ph.patient_id))
     )
     a = pd.read_csv(d / "appointments.csv").rename(columns={"id": "appointment_id", "device_created_at": "booked_at"})
+    if "remind_on" not in a.columns:
+        a["remind_on"] = pd.NaT
     rx = pd.read_csv(d / "prescription_drugs.csv")
     return {
         "patients": patients,
-        "appointments": a[["appointment_id", "patient_id", "facility_id", "scheduled_date", "status", "booked_at"]],
+        "appointments": a[["appointment_id", "patient_id", "facility_id", "scheduled_date", "status",
+                           "remind_on", "booked_at", "device_updated_at"]],
         "blood_pressures": pd.read_csv(d / "blood_pressures.csv")[["patient_id", "systolic", "diastolic", "recorded_at"]],
         "prescription_drugs": rx[rx.is_protocol_drug][["patient_id", "device_created_at", "is_deleted", "device_updated_at"]],
-        "call_results": pd.read_csv(d / "call_results.csv")[["patient_id", "result_type", "device_created_at"]],
+        "call_results": pd.read_csv(d / "call_results.csv")[["patient_id", "appointment_id", "result_type", "remove_reason", "device_created_at"]],
     }
 
 
@@ -205,11 +209,12 @@ def build_feature_table(tables: dict[str, pd.DataFrame], as_of: pd.Timestamp) ->
     a["rainy_season"] = a.scheduled_date.dt.month.isin([6, 7, 8, 9]).astype(int)
     a["scheduled_weekday"] = a.scheduled_date.dt.day_name().str[:3]
 
-    # ---- latest BP as of booking (same-day reading counts) and change vs previous
+    # ---- latest BP as of the booking *day* (the visit BP is recorded the same day the next
+    # appointment is created) and change vs previous. Later calendar days must not leak.
     bps["recorded_at"] = _to_dt(bps.recorded_at)
     bps = bps.sort_values(["patient_id", "recorded_at"])
     bps["prev_systolic"] = bps.groupby("patient_id").systolic.shift(1)
-    bps["ts"] = bps.recorded_at.dt.normalize() + pd.Timedelta(hours=23, minutes=59)  # any reading that day counts
+    bps["ts"] = bps.recorded_at.dt.normalize() + pd.Timedelta(hours=23, minutes=59)
     a = a.sort_values("booked_at")
     a["_key"] = a.booked_date + pd.Timedelta(hours=23, minutes=59)
     a = pd.merge_asof(a, bps[["patient_id", "ts", "systolic", "diastolic", "prev_systolic"]].sort_values("ts"),
@@ -234,6 +239,7 @@ def build_feature_table(tables: dict[str, pd.DataFrame], as_of: pd.Timestamp) ->
     calls["device_created_at"] = _to_dt(calls.device_created_at)
     calls = calls.sort_values("device_created_at")
     calls["prior_calls"] = calls.groupby("patient_id").cumcount() + 1
+    calls = calls[["patient_id", "result_type", "device_created_at", "prior_calls"]]
     a = pd.merge_asof(a.sort_values("booked_at"), calls.rename(columns={"device_created_at": "ts", "result_type": "last_call_result"}),
                       left_on="booked_at", right_on="ts", by="patient_id", direction="backward")
     a["prior_calls"] = a.prior_calls.fillna(0)

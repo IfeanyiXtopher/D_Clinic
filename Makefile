@@ -33,6 +33,9 @@ test:  ## Run backend tests
 eda:  ## Execute the EDA notebook in place
 	$(PY) -m jupyter nbconvert --to notebook --execute --inplace notebooks/01_eda.ipynb
 
+eval-worklist:  ## Replay risk vs days-overdue worklists; write docs/eval_reports/worklist.md
+	cd $(BACKEND) && LOKY_MAX_CPU_COUNT=4 ../$(PY) -m ml.worklist_eval
+
 train:  ## Train the missed-visit model from the database; write artifact, report, MLflow run
 	cd $(BACKEND) && LOKY_MAX_CPU_COUNT=4 ../$(PY) -m ml.train
 
@@ -56,4 +59,4 @@ beat:  ## Run the Celery beat scheduler (exactly one instance)
 mlflow:  ## Open the MLflow UI on :5000
 	$(PY) -m mlflow ui --backend-store-uri sqlite:///mlflow.db --port 5000
 
-.PHONY: help venv up down migrate synth seed test eda train score notebooks api worker beat mlflow
+.PHONY: help venv up down migrate synth seed test eda eval-worklist train score notebooks api worker beat mlflow

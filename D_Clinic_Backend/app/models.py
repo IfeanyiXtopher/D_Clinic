@@ -25,6 +25,7 @@ from sqlalchemy import (
     Numeric,
     String,
     Text,
+    UniqueConstraint,
 )
 from sqlalchemy.dialects.postgresql import JSONB, UUID
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
@@ -293,4 +294,38 @@ class RiskScore(Base):
     __table_args__ = (
         Index("index_risk_scores_on_appointment_id_and_scored_at", "appointment_id", "scored_at"),
         Index("index_risk_scores_on_facility_id_and_scheduled_date", "facility_id", "scheduled_date"),
+    )
+
+
+class WorklistItem(Base):
+    """One line of a facility's daily worklist (Step 3). Rebuilding a day replaces its open items;
+    items already actioned (call_result_id set) are kept so history survives a rebuild."""
+
+    __tablename__ = "worklist_items"
+
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=_uuid)
+    facility_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("facilities.id"), nullable=False)
+    list_date: Mapped[date] = mapped_column(Date, nullable=False)
+    list_type: Mapped[str] = mapped_column(String, nullable=False)  # overdue | pre_visit
+    rank: Mapped[int] = mapped_column(Integer, nullable=False)
+    patient_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("patients.id"), nullable=False)
+    appointment_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("appointments.id"), nullable=False)
+    priority: Mapped[float | None] = mapped_column(Numeric(8, 4))
+    p_missed: Mapped[float | None] = mapped_column(Numeric(6, 4))
+    band: Mapped[str | None] = mapped_column(String)
+    basis: Mapped[str | None] = mapped_column(String)
+    days_overdue: Mapped[int] = mapped_column(Integer, nullable=False)  # negative for pre-visit items
+    uncontrolled: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+    protected_slot: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+    has_phone: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+    suggested_action: Mapped[str] = mapped_column(String, nullable=False)  # call | call_back | home_visit | reminder_call
+    reasons: Mapped[list] = mapped_column(JSONB, nullable=False, default=list)
+    status: Mapped[str] = mapped_column(String, nullable=False, default="open")  # open | done | skipped
+    call_result_id: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True), ForeignKey("call_results.id"))
+    created_at: Mapped[datetime] = mapped_column(DateTime, nullable=False)
+
+    __table_args__ = (
+        UniqueConstraint("facility_id", "list_date", "list_type", "appointment_id", name="uq_worklist_items_day_appointment"),
+        Index("index_worklist_items_on_facility_id_and_list_date", "facility_id", "list_date"),
+        Index("index_worklist_items_on_patient_id", "patient_id"),
     )
