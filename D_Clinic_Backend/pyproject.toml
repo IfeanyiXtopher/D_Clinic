@@ -1,0 +1,28 @@
+[project]
+name = "followup-ai-backend"
+version = "0.1.0"
+description = "AI follow-up layer for a hypertension/diabetes program (Simple-compatible)"
+requires-python = ">=3.11"
+license = { text = "MIT" }
+dependencies = [
+  "fastapi>=0.115",
+  "uvicorn[standard]>=0.30",
+  "sqlalchemy>=2.0",
+  "alembic>=1.13",
+  "psycopg[binary]>=3.1",
+  "pydantic-settings>=2.3",
+  "python-dotenv>=1.0",
+  "pandas>=2.2",
+  "numpy>=1.26",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=8", "ruff>=0.5"]
+ml = ["scikit-learn>=1.5", "lightgbm>=4.3", "mlflow>=2.14", "matplotlib>=3.9", "jupyter"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]
+
+[tool.ruff]
+line-length = 100

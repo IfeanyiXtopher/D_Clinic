@@ -1,0 +1,34 @@
+# Local infrastructure.
+#
+#   docker compose up -d                      -> redis only (uses your own PostgreSQL)
+#   docker compose --profile db up -d         -> redis + a PostgreSQL 16 with pgvector
+#
+# The default assumes PostgreSQL already runs on the host (see .env). The `db`
+# profile is for machines without one, and for Step 6 where pgvector is needed.
+
+services:
+  redis:
+    image: redis:7-alpine
+    container_name: followup_redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redisdata:/data
+    command: ["redis-server", "--appendonly", "yes"]
+
+  postgres:
+    profiles: ["db"]
+    image: pgvector/pgvector:pg16
+    container_name: followup_postgres
+    environment:
+      POSTGRES_DB: ${PG_DB:-d_clinic}
+      POSTGRES_USER: ${PG_USER:-postgres}
+      POSTGRES_PASSWORD: ${PG_PASSWORD:-postgres}
+    ports:
+      - "${PG_PORT:-5433}:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+volumes:
+  redisdata:
+  pgdata:

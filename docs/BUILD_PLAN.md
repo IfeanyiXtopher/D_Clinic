@@ -23,7 +23,7 @@ and a **Verify** command or check that proves it is done. Nothing is marked
 
 ## Current position
 
-> **Step 0 — Scope and repository foundation: `[x]` done. Next: Step 1.**
+> **Step 1 — Data foundation and synthetic cohort: `[x]` done. Next: Step 2 (missed-visit risk model).**
 
 ## Prerequisites on the developer machine
 
@@ -33,11 +33,15 @@ and a **Verify** command or check that proves it is done. Nothing is marked
 | Docker + Compose | Step 1 | yes (29.4) |
 | Node 20+ | Step 10 | yes (24.15) |
 | Ollama | Step 4 | **no** — install from https://ollama.com before Step 4 |
+| pgvector extension | Step 6 | **no** on the local PostgreSQL 18 — either `brew install pgvector` or run `make up PROFILE=db` for Step 6 |
 | Kaggle account | Step 7 | for free T4/P100 fine-tuning |
 | OpenAI API key (optional) | Step 4, 7 | teacher model and comparison baseline only |
 
 Folder names: the backend lives in `D_Clinic_Backend/`, the frontend in
 `D_Clinic_Frontend/` (pre-existing folders, kept as-is).
+
+Database: the developer's own PostgreSQL (`d_clinic`, credentials in the
+gitignored `.env`; template in `.env.example`). Redis runs in Docker.
 
 ---
 
@@ -61,23 +65,25 @@ step obeys. Produce the skeleton so each step has a home.
 
 ---
 
-## Step 1 — Data foundation and synthetic cohort `[ ]`
+## Step 1 — Data foundation and synthetic cohort `[x]`
 
 **Goal.** A Postgres schema that mirrors Simple's tables and a synthetic
 generator producing a realistic 24-month program history, plus an EDA notebook.
 
-1. `[ ]` 1.1 `docker-compose.yml` with `postgres` (pgvector image) and `redis`; `Makefile` with `make up`, `make down`, `make seed`.
-2. `[ ]` 1.2 Backend Python project (`pyproject.toml`, `uv` or `pip-tools`), settings via environment, Alembic migrations.
-3. `[ ]` 1.3 SQLAlchemy models named after Simple: `facilities`, `users`, `patients`, `patient_phone_numbers`, `addresses` (coarse only), `blood_pressures`, `blood_sugars`, `prescription_drugs`, `appointments`, `call_results`, `communications`, `medical_histories`.
-4. `[ ]` 1.4 Synthetic generator `data/synth/generate.py`: 5 facilities, 5,000–20,000 patients, latent adherence propensity, HEARTS drug ladder, visits, misses, overdue, LTFU, call results with 15-day return behaviour, SMS reminders and short replies (English, Pidgin, some Hausa/Yoruba), demographics with a `region` column used only for fairness checks. Deterministic with a seed.
-5. `[ ]` 1.5 `make seed` loads generated CSVs into Postgres; small sample CSVs committed for tests.
-6. `[ ]` 1.6 Program-logic SQL views: `overdue_patients`, `lost_to_follow_up`, `bp_controlled_latest` (definitions in `docs/definitions.md`).
-7. `[ ]` 1.7 `notebooks/01_eda.ipynb`: registrations, overdue rate by facility, control rate, call → return rate, label balance.
-8. `[ ]` 1.8 Unit tests for the generator invariants (no visit before registration, no BP after death, appointment dates monotone).
+1. `[x]` 1.1 `docker-compose.yml` (`redis`; optional `postgres` pgvector image under profile `db`); `Makefile` with `up`, `down`, `migrate`, `synth`, `seed`, `test`, `eda`.
+2. `[x]` 1.2 Backend Python project (`D_Clinic_Backend/pyproject.toml`), `pydantic-settings` reading `.env`, Alembic migrations `0001` (tables) and `0002` (views).
+3. `[x]` 1.3 SQLAlchemy models named after Simple in `app/models.py`: `facilities`, `users`, `patients`, `patient_phone_numbers`, `addresses` (`zone` = distance band, `state` = region for audits only), `medical_histories`, `blood_pressures`, `blood_sugars`, `prescription_drugs`, `appointments`, `call_results`, `communications`.
+4. `[x]` 1.4 Generator `data/synth/generate.py`: 5 facilities, 6,000 patients in ~4 s, latent adherence propensity, HEARTS ladder (amlodipine → telmisartan → chlorthalidone), visits/misses/overdue/LTFU, call results with Simple's exact values and 15-day return behaviour, reminder SMS and multilingual replies (en / pcm / ha / yo) with truth intents, region correlated with distance but with **no causal effect**. Deterministic per seed.
+5. `[x]` 1.5 `make seed` = migrate + generate + `COPY` load (idempotent, truncates first). 150-patient sample committed at `data/synth/sample/`; full output in gitignored `data/synth/out/`.
+6. `[x]` 1.6 Views: `latest_blood_pressures`, `bp_controlled_latest`, `latest_appointments`, `patients_under_care`, `lost_to_follow_up`, `overdue_patients` (with `has_phone`, last call result, days overdue). Definitions in `docs/definitions.md`.
+7. `[x]` 1.7 `notebooks/01_eda.ipynb` (built by `notebooks/build_01_eda.py`, executed): cohort, registrations, missed-visit label by facility / lead time / distance, region gap explained by distance, overdue & LTFU, BP control trend, call → return within 15 days, SMS reply intents and languages.
+8. `[x]` 1.8 `tests/test_synth.py`: 11 invariants (determinism, no visit before registration, none after death or program end, monotone appointments, valid status/call values, one active ladder, missed rate 20–35%, `stop` revokes consent, no identity in truth files).
 
-**Artifact.** Running database with synthetic program data; `docs/definitions.md`; EDA notebook.
+**Artifact.** Database `d_clinic` with 6,000 synthetic patients, 39k visits, 39k appointments, 5.6k call results, 47k communications; `docs/definitions.md`; executed EDA notebook.
 
-**Verify.** `make up && make seed && pytest D_Clinic_Backend/tests/test_synth.py` green; `SELECT count(*) FROM overdue_patients` returns a plausible 15–35% of active patients.
+**Verify.** `make seed && make test` → 11 passed; seed output reports overdue among under-care 48% (accepted range 30–50%, see `docs/definitions.md`), BP controlled 41%, missed-visit rate 29%.
+
+**Measured on 2026-09-26.** Missed rate 29.1%; overdue/under-care 48.3%; LTFU 900; controlled 41.2%; call results 51/30/19; return within 15 days of a call: 63% after `agreed_to_visit`, 22% after `remind_to_call_later`, 1.5% after removal; SMS reply rate 29%.
 
 ---
 
@@ -247,3 +253,4 @@ exported to GGUF, served by Ollama, evaluated against the base model.
 | Date | Step | Note |
 | --- | --- | --- |
 | 2026-09-26 | 0 | Repository initialized, tracker and ADRs written. |
+| 2026-09-26 | 1 | Simple-shaped schema (12 tables, 6 views) migrated into local `d_clinic`; synthetic generator (6,000 patients) loaded; 11 invariant tests green; EDA notebook executed. Generator tuned twice: return-to-care probabilities raised (overdue 67% → 48%), lead-time effect strengthened so >60 d is the riskiest band. |

@@ -29,9 +29,22 @@ eval/               promptfoo configs and evaluation runner
 docs/               build plan, ADRs, model cards, evaluation reports, responsible AI
 ```
 
-## Running
+## Running (Step 1 state)
 
-Populated in Step 1 (`make up && make seed`).
+Prerequisites: Python 3.11+, Docker, and a PostgreSQL database you can reach
+(or use the containerised one).
+
+```bash
+cp .env.example .env            # set PG_* to your database
+make venv                       # virtualenv + backend deps
+make up                         # redis  (add PROFILE=db for a PostgreSQL+pgvector container)
+make seed                       # migrate, generate 6,000 synthetic patients, load
+make test                       # generator invariants
+make eda                        # execute notebooks/01_eda.ipynb against the database
+```
+
+Program definitions (overdue, under care, lost to follow-up, controlled) are in
+[`docs/definitions.md`](docs/definitions.md).
 
 ## Licence
 

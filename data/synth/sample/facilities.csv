@@ -1,0 +1,6 @@
+id,name,facility_type,district,state,country,facility_size,created_at
+ffe42279-f3bd-4683-a6a8-52c1bb9651f3,Agege Primary Health Centre,PHC,Agege,Lagos,Nigeria,medium,2024-08-15 09:00:00
+552564e7-84a4-4534-acfd-938092f72643,Ikorodu General Hospital,District Hospital,Ikorodu,Lagos,Nigeria,large,2024-08-15 09:00:00
+5f213a58-b179-42d7-9c05-e29474526e82,Abeokuta South Comprehensive HC,CHC,Abeokuta South,Ogun,Nigeria,medium,2024-08-15 09:00:00
+906096d6-f0f6-4da5-9c19-dc403afb4bb8,Ijebu Ode Primary Health Centre,PHC,Ijebu Ode,Ogun,Nigeria,small,2024-08-15 09:00:00
+da845e7d-fedd-47ac-b12d-fb734b6449eb,Sagamu Model PHC,PHC,Sagamu,Ogun,Nigeria,small,2024-08-15 09:00:00
