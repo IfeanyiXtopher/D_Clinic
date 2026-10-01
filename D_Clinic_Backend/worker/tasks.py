@@ -45,3 +45,18 @@ def build_daily_worklists(self, list_date: str | None = None, facility_id: str |
         raise self.retry(exc=exc)
     log.info("worklists for %s: %s", d, counts)
     return {"list_date": d.isoformat(), "facilities": counts}
+
+
+@celery.task(name="worker.tasks.weekly_drift_report", bind=True, max_retries=1, default_retry_delay=300)
+def weekly_drift_report(self) -> dict:
+    """Write docs/eval_reports/drift.md from the last two weeks of risk_scores."""
+    from app.db import engine
+    from ml.drift import write_report
+
+    try:
+        report = write_report(engine)
+    except Exception as exc:  # pragma: no cover
+        log.exception("drift report failed")
+        raise self.retry(exc=exc)
+    log.info("drift report alert=%s delta=%s", report["alert"], report["delta_mean_p"])
+    return {"alert": report["alert"], "delta_mean_p": report["delta_mean_p"]}

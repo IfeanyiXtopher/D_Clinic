@@ -232,6 +232,12 @@ def test_call_result_updates_appointment_closes_item_and_survives_rebuild(client
     res = r.json()
     assert res["worklist_items_closed"] == 1
     with engine.connect() as c:
+        ev = c.execute(
+            text("SELECT action FROM audit_events WHERE extra->>'call_result_id' = :id"),
+            {"id": res["call_result_id"]},
+        ).scalar()
+    assert ev == "call_result.recorded"
+    with engine.connect() as c:
         a = c.execute(text("SELECT agreed_to_visit, status FROM appointments WHERE id = :id"), {"id": item["appointment_id"]}).one()
         cr = c.execute(text("SELECT result_type, patient_id::text FROM call_results WHERE id = :id"), {"id": res["call_result_id"]}).one()
     assert a.agreed_to_visit is True and a.status == "scheduled"

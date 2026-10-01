@@ -1,0 +1,57 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: d_clinic
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    env:
+      PG_HOST: localhost
+      PG_PORT: 5432
+      PG_DB: d_clinic
+      PG_USER: postgres
+      PG_PASSWORD: postgres
+      LLM_PROVIDER: none
+      EMBEDDING_PROVIDER: tfidf
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install backend
+        run: |
+          python -m venv .venv
+          .venv/bin/pip install -q --upgrade pip
+          .venv/bin/pip install -q -e "D_Clinic_Backend[dev,ml,llm]"
+      - name: Migrate
+        run: make migrate
+      - name: Pytest
+        run: make test
+      - name: Eval gates
+        run: make eval-gates
+      - name: Offline bundle
+        run: make bundle
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+      - name: Frontend build
+        run: |
+          cd D_Clinic_Frontend
+          npm install
+          npm run build

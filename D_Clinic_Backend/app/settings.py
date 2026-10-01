@@ -37,6 +37,24 @@ class Settings(BaseSettings):
     synth_patients: int = 6000
     synth_out_dir: Path = REPO_ROOT / "data" / "synth" / "out"
 
+    # LLM gateway (Step 4). `none` = templated summary only.
+    # Local laptop: LLM_PROVIDER=ollama. Live VPS: LLM_PROVIDER=openai.
+    llm_provider: str = "none"  # none | ollama | openai
+    ollama_base_url: str = "http://localhost:11434/v1"
+    ollama_model: str = "qwen2.5:3b"
+    openai_api_key: str = Field(default="", repr=False)
+    openai_base_url: str = "https://api.openai.com/v1"
+    openai_model: str = "gpt-4o-mini"
+    llm_timeout_s: float = 30.0
+    llm_max_tokens: int = 250
+
+    # Embeddings for the ready-reckoner (Step 6). `tfidf` = local bag-of-words, no API.
+    # Laptop: EMBEDDING_PROVIDER=ollama and `ollama pull nomic-embed-text`.
+    # Live VPS: EMBEDDING_PROVIDER=openai (same OPENAI_API_KEY as chat).
+    embedding_provider: str = "tfidf"  # tfidf | ollama | openai
+    ollama_embed_model: str = "nomic-embed-text"
+    openai_embed_model: str = "text-embedding-3-small"
+
     @computed_field  # type: ignore[misc]
     @property
     def database_url(self) -> str:

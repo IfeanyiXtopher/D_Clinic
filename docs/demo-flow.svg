@@ -1,0 +1,34 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 280" role="img" aria-label="Followup-AI: worklist, briefing, SMS, evaluation">
+  <rect width="960" height="280" fill="#f3eee4"/>
+  <text x="32" y="36" font-family="Georgia, serif" font-size="18" fill="#1f1b16">Followup-AI  beside Simple</text>
+  <g font-family="Georgia, serif" fill="#1f1b16">
+    <rect x="32" y="56" width="200" height="180" fill="#fbf8f2" stroke="#d8d0c2"/>
+    <text x="48" y="88" font-size="16" font-weight="600">1. Worklist</text>
+    <text x="48" y="118" font-size="13" fill="#5c564d">Ranked calls.</text>
+    <text x="48" y="138" font-size="13" fill="#5c564d">Score never drops</text>
+    <text x="48" y="158" font-size="13" fill="#5c564d">anyone. Worker</text>
+    <text x="48" y="178" font-size="13" fill="#5c564d">records the result.</text>
+    <text x="48" y="210" font-size="12" fill="#0f6b63">+15% extra returns</text>
+    <rect x="264" y="56" width="200" height="180" fill="#fbf8f2" stroke="#d8d0c2"/>
+    <text x="280" y="88" font-size="16" font-weight="600">2. Briefing</text>
+    <text x="280" y="118" font-size="13" fill="#5c564d">Facts first. Numbers</text>
+    <text x="280" y="138" font-size="13" fill="#5c564d">and drugs checked.</text>
+    <text x="280" y="158" font-size="13" fill="#5c564d">Staff rate. No name</text>
+    <text x="280" y="178" font-size="13" fill="#5c564d">or phone on screen.</text>
+    <text x="280" y="210" font-size="12" fill="#0f6b63">Identity never in prompt</text>
+    <rect x="496" y="56" width="200" height="180" fill="#fbf8f2" stroke="#d8d0c2"/>
+    <text x="512" y="88" font-size="16" font-weight="600">3. SMS</text>
+    <text x="512" y="118" font-size="13" fill="#5c564d">Patient confirms or</text>
+    <text x="512" y="138" font-size="13" fill="#5c564d">moves the visit.</text>
+    <text x="512" y="158" font-size="13" fill="#5c564d">Code books the day.</text>
+    <text x="512" y="178" font-size="13" fill="#5c564d">Symptom ’ callback.</text>
+    <text x="512" y="210" font-size="12" fill="#0f6b63">0 unsafe / 0 PII (eval)</text>
+    <rect x="728" y="56" width="200" height="180" fill="#fbf8f2" stroke="#d8d0c2"/>
+    <text x="744" y="88" font-size="16" font-weight="600">4. Protocol</text>
+    <text x="744" y="118" font-size="13" fill="#5c564d">HEARTS / PHC lookup.</text>
+    <text x="744" y="138" font-size="13" fill="#5c564d">Cited answer. Refuse</text>
+    <text x="744" y="158" font-size="13" fill="#5c564d">if not in the pack.</text>
+    <text x="744" y="178" font-size="13" fill="#5c564d">Not a prescription.</text>
+    <text x="744" y="210" font-size="12" fill="#0f6b63">OOS refuse 100%</text>
+  </g>
+</svg>

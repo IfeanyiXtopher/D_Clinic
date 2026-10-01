@@ -1,0 +1,4 @@
+Rephrase this clinic SMS into the requested language and register.
+Keep every placeholder token exactly as written (DATE1, DATE2, DATE3, VISIT).
+Do not add names, phone numbers, calendar dates, doses, or medical advice.
+Output the rephrased SMS only.

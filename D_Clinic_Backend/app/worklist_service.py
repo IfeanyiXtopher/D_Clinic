@@ -89,8 +89,35 @@ def build_and_store(engine: Engine, list_date: date, facility_id: str | None = N
 
 def fetch_worklist(engine: Engine, facility_id: str, list_date: date, build_if_missing: bool = True) -> list[dict]:
     with engine.connect() as c:
-        rows = c.execute(text("""SELECT * FROM worklist_items WHERE facility_id = :f AND list_date = :d
-                                 ORDER BY list_type DESC, rank"""), {"f": facility_id, "d": list_date}).mappings().all()
+        rows = c.execute(text("""
+            SELECT w.*,
+                   CASE
+                     WHEN cr.at IS NOT NULL AND (bp.at IS NULL OR cr.at >= bp.at) THEN cr.at
+                     ELSE bp.at
+                   END AS last_interaction_at,
+                   CASE
+                     WHEN cr.at IS NOT NULL AND (bp.at IS NULL OR cr.at >= bp.at) THEN cr.kind
+                     WHEN bp.at IS NOT NULL THEN 'visited'
+                     ELSE NULL
+                   END AS last_interaction
+            FROM worklist_items w
+            LEFT JOIN LATERAL (
+                SELECT device_created_at AS at, result_type AS kind
+                FROM call_results
+                WHERE patient_id = w.patient_id
+                ORDER BY device_created_at DESC
+                LIMIT 1
+            ) cr ON true
+            LEFT JOIN LATERAL (
+                SELECT recorded_at AS at
+                FROM blood_pressures
+                WHERE patient_id = w.patient_id AND deleted_at IS NULL
+                ORDER BY recorded_at DESC
+                LIMIT 1
+            ) bp ON true
+            WHERE w.facility_id = :f AND w.list_date = :d
+            ORDER BY w.list_type DESC, w.rank
+        """), {"f": facility_id, "d": list_date}).mappings().all()
     if not rows and build_if_missing:
         build_and_store(engine, list_date, facility_id)
         return fetch_worklist(engine, facility_id, list_date, build_if_missing=False)

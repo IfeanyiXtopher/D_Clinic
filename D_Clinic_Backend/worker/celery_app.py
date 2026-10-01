@@ -31,5 +31,10 @@ celery.conf.update(
             "task": "worker.tasks.build_daily_worklists",
             "schedule": crontab(hour=6, minute=0),
         },
+        # Sunday 03:00: compare last week's score mix with the week before.
+        "weekly-drift-report": {
+            "task": "worker.tasks.weekly_drift_report",
+            "schedule": crontab(hour=3, minute=0, day_of_week="sun"),
+        },
     },
 )

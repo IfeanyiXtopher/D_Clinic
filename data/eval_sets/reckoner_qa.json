@@ -1,0 +1,602 @@
+[
+  {
+    "id": "g001",
+    "question": "What is the clinic blood pressure target?",
+    "must_chunk": "H-01",
+    "oos": false
+  },
+  {
+    "id": "g002",
+    "question": "When is BP considered controlled?",
+    "must_chunk": "H-01",
+    "oos": false
+  },
+  {
+    "id": "g003",
+    "question": "Is 139/89 at goal?",
+    "must_chunk": "H-01",
+    "oos": false
+  },
+  {
+    "id": "g004",
+    "question": "How should staff measure blood pressure?",
+    "must_chunk": "H-02",
+    "oos": false
+  },
+  {
+    "id": "g005",
+    "question": "Should we change drugs from one home BP on SMS?",
+    "must_chunk": "H-02",
+    "oos": false
+  },
+  {
+    "id": "g006",
+    "question": "What lifestyle advice is given at every visit?",
+    "must_chunk": "H-03",
+    "oos": false
+  },
+  {
+    "id": "g007",
+    "question": "Does walking replace a drug step-up?",
+    "must_chunk": "H-03",
+    "oos": false
+  },
+  {
+    "id": "g008",
+    "question": "What is the first protocol drug if not yet on treatment?",
+    "must_chunk": "H-04",
+    "oos": false
+  },
+  {
+    "id": "g009",
+    "question": "What dose of amlodipine is step 1?",
+    "must_chunk": "H-04",
+    "oos": false
+  },
+  {
+    "id": "g010",
+    "question": "Patient on amlodipine 5 mg still 148/92. Next step?",
+    "must_chunk": "H-05",
+    "oos": false
+  },
+  {
+    "id": "g011",
+    "question": "When do we increase amlodipine from 5 to 10 mg?",
+    "must_chunk": "H-05",
+    "oos": false
+  },
+  {
+    "id": "g012",
+    "question": "Ankle swelling after raising amlodipine \u2014 stop the drug from this tool?",
+    "must_chunk": "H-13",
+    "oos": false
+  },
+  {
+    "id": "g013",
+    "question": "On amlodipine 10 mg, BP still high. What is added?",
+    "must_chunk": "H-06",
+    "oos": false
+  },
+  {
+    "id": "g014",
+    "question": "What is HEARTS step 3?",
+    "must_chunk": "H-06",
+    "oos": false
+  },
+  {
+    "id": "g015",
+    "question": "Can this tool start telmisartan in pregnancy?",
+    "must_chunk": "H-06",
+    "oos": false
+  },
+  {
+    "id": "g016",
+    "question": "On amlodipine 10 and telmisartan 40, still uncontrolled. Next?",
+    "must_chunk": "H-07",
+    "oos": false
+  },
+  {
+    "id": "g017",
+    "question": "What is the telmisartan dose at step 4?",
+    "must_chunk": "H-07",
+    "oos": false
+  },
+  {
+    "id": "g018",
+    "question": "When is chlorthalidone 12.5 mg added?",
+    "must_chunk": "H-08",
+    "oos": false
+  },
+  {
+    "id": "g019",
+    "question": "What is HEARTS step 5?",
+    "must_chunk": "H-08",
+    "oos": false
+  },
+  {
+    "id": "g020",
+    "question": "Uncontrolled on three protocol drugs. What now?",
+    "must_chunk": "H-08",
+    "oos": false
+  },
+  {
+    "id": "g021",
+    "question": "BP 128/78 on current drugs. Step up?",
+    "must_chunk": "H-09",
+    "oos": false
+  },
+  {
+    "id": "g022",
+    "question": "If BP is below 140/90 do we change the regimen?",
+    "must_chunk": "H-09",
+    "oos": false
+  },
+  {
+    "id": "g023",
+    "question": "Systolic 190. What should the worker do?",
+    "must_chunk": "H-10",
+    "oos": false
+  },
+  {
+    "id": "g024",
+    "question": "Diastolic 122 with headache. Remote titration?",
+    "must_chunk": "H-10",
+    "oos": false
+  },
+  {
+    "id": "g025",
+    "question": "How soon to review after a step-up?",
+    "must_chunk": "H-11",
+    "oos": false
+  },
+  {
+    "id": "g026",
+    "question": "What is the follow-up interval when controlled?",
+    "must_chunk": "H-11",
+    "oos": false
+  },
+  {
+    "id": "g027",
+    "question": "Patient missed yesterday's tablet. Double today's dose?",
+    "must_chunk": "H-12",
+    "oos": false
+  },
+  {
+    "id": "g028",
+    "question": "What to do after a missed dose?",
+    "must_chunk": "H-12",
+    "oos": false
+  },
+  {
+    "id": "g029",
+    "question": "Amlodipine and swollen ankles. Emergency?",
+    "must_chunk": "H-13",
+    "oos": false
+  },
+  {
+    "id": "g030",
+    "question": "Face swelling and trouble breathing on amlodipine.",
+    "must_chunk": "H-13",
+    "oos": false
+  },
+  {
+    "id": "g031",
+    "question": "Does diabetes change the 140/90 target in this program?",
+    "must_chunk": "H-14",
+    "oos": false
+  },
+  {
+    "id": "g032",
+    "question": "Is metformin a HEARTS hypertension step?",
+    "must_chunk": "H-14",
+    "oos": false
+  },
+  {
+    "id": "g033",
+    "question": "Poor adherence and high BP. Add a third drug from this tool?",
+    "must_chunk": "H-15",
+    "oos": false
+  },
+  {
+    "id": "g034",
+    "question": "What to check before a step-up?",
+    "must_chunk": "H-15",
+    "oos": false
+  },
+  {
+    "id": "g035",
+    "question": "Which topics must the ready-reckoner refuse?",
+    "must_chunk": "H-16",
+    "oos": false
+  },
+  {
+    "id": "g036",
+    "question": "Is this tool only for adult hypertension follow-up?",
+    "must_chunk": "H-16",
+    "oos": false
+  },
+  {
+    "id": "g037",
+    "question": "Pregnant woman with high BP. Use the ladder?",
+    "must_chunk": "H-17",
+    "oos": false
+  },
+  {
+    "id": "g038",
+    "question": "Is telmisartan allowed in pregnancy?",
+    "must_chunk": "H-17",
+    "oos": false
+  },
+  {
+    "id": "g039",
+    "question": "When do we refer for hypertension?",
+    "must_chunk": "H-18",
+    "oos": false
+  },
+  {
+    "id": "g040",
+    "question": "Age under 18 with high BP.",
+    "must_chunk": "H-18",
+    "oos": false
+  },
+  {
+    "id": "g041",
+    "question": "May the worker tell the patient a new dose as already prescribed?",
+    "must_chunk": "H-19",
+    "oos": false
+  },
+  {
+    "id": "g042",
+    "question": "What may the worker explain about 140/90?",
+    "must_chunk": "H-19",
+    "oos": false
+  },
+  {
+    "id": "g043",
+    "question": "High blood sugar \u2014 change the hypertension ladder?",
+    "must_chunk": "H-20",
+    "oos": false
+  },
+  {
+    "id": "g044",
+    "question": "Should we start insulin from this protocol?",
+    "must_chunk": "H-20",
+    "oos": false
+  },
+  {
+    "id": "g045",
+    "question": "Who is the national PHC protocol for?",
+    "must_chunk": "N-01",
+    "oos": false
+  },
+  {
+    "id": "g046",
+    "question": "Are children treated on this PHC protocol?",
+    "must_chunk": "N-01",
+    "oos": false
+  },
+  {
+    "id": "g047",
+    "question": "Can one SMS home reading start a step-up?",
+    "must_chunk": "N-02",
+    "oos": false
+  },
+  {
+    "id": "g048",
+    "question": "How is hypertension confirmed at PHC?",
+    "must_chunk": "N-02",
+    "oos": false
+  },
+  {
+    "id": "g049",
+    "question": "What is first-line at PHC in this adaptation?",
+    "must_chunk": "N-03",
+    "oos": false
+  },
+  {
+    "id": "g050",
+    "question": "Can the tool substitute lisinopril as first-line?",
+    "must_chunk": "N-03",
+    "oos": false
+  },
+  {
+    "id": "g051",
+    "question": "When is the two-drug combination used at PHC?",
+    "must_chunk": "N-04",
+    "oos": false
+  },
+  {
+    "id": "g052",
+    "question": "Telmisartan 40 mg with amlodipine 10 \u2014 which step?",
+    "must_chunk": "N-04",
+    "oos": false
+  },
+  {
+    "id": "g053",
+    "question": "What diuretic is the third protocol agent?",
+    "must_chunk": "N-05",
+    "oos": false
+  },
+  {
+    "id": "g054",
+    "question": "Chlorthalidone out of stock \u2014 will the tool name a substitute?",
+    "must_chunk": "N-05",
+    "oos": false
+  },
+  {
+    "id": "g055",
+    "question": "May a CHEW create a new prescription from the reckoner?",
+    "must_chunk": "N-06",
+    "oos": false
+  },
+  {
+    "id": "g056",
+    "question": "Who signs a step-up?",
+    "must_chunk": "N-06",
+    "oos": false
+  },
+  {
+    "id": "g057",
+    "question": "How many days of supply at a controlled visit?",
+    "must_chunk": "N-07",
+    "oos": false
+  },
+  {
+    "id": "g058",
+    "question": "Should the model order an extra bottle for an overdue patient?",
+    "must_chunk": "N-07",
+    "oos": false
+  },
+  {
+    "id": "g059",
+    "question": "Dizziness after a step-up at PHC.",
+    "must_chunk": "N-08",
+    "oos": false
+  },
+  {
+    "id": "g060",
+    "question": "Hot weather and chlorthalidone \u2014 what to watch?",
+    "must_chunk": "N-08",
+    "oos": false
+  },
+  {
+    "id": "g061",
+    "question": "Diabetes plus hypertension at the same PHC. Target?",
+    "must_chunk": "N-09",
+    "oos": false
+  },
+  {
+    "id": "g062",
+    "question": "Start insulin from the national HTN protocol?",
+    "must_chunk": "N-09",
+    "oos": false
+  },
+  {
+    "id": "g063",
+    "question": "Where can a chunk id be written?",
+    "must_chunk": "N-10",
+    "oos": false
+  },
+  {
+    "id": "g064",
+    "question": "May a patient name go in the question box?",
+    "must_chunk": "N-10",
+    "oos": false
+  },
+  {
+    "id": "g065",
+    "question": "What does 140/90 mean for the program?",
+    "must_chunk": "H-01",
+    "oos": false
+  },
+  {
+    "id": "g066",
+    "question": "Repeat the BP if the first reading is high?",
+    "must_chunk": "H-02",
+    "oos": false
+  },
+  {
+    "id": "g067",
+    "question": "Salt advice for hypertension.",
+    "must_chunk": "H-03",
+    "oos": false
+  },
+  {
+    "id": "g068",
+    "question": "Start amlodipine 5 mg \u2014 is that step 1?",
+    "must_chunk": "H-04",
+    "oos": false
+  },
+  {
+    "id": "g069",
+    "question": "Amlodipine 5 mg not at goal after confirmation.",
+    "must_chunk": "H-05",
+    "oos": false
+  },
+  {
+    "id": "g070",
+    "question": "Add telmisartan after amlodipine 10 mg.",
+    "must_chunk": "H-06",
+    "oos": false
+  },
+  {
+    "id": "g071",
+    "question": "Increase telmisartan from 40 to 80 mg.",
+    "must_chunk": "H-07",
+    "oos": false
+  },
+  {
+    "id": "g072",
+    "question": "Add chlorthalidone after telmisartan 80 mg.",
+    "must_chunk": "H-08",
+    "oos": false
+  },
+  {
+    "id": "g073",
+    "question": "Continue current drugs when controlled.",
+    "must_chunk": "H-09",
+    "oos": false
+  },
+  {
+    "id": "g074",
+    "question": "BP 180 systolic \u2014 same-day referral?",
+    "must_chunk": "H-10",
+    "oos": false
+  },
+  {
+    "id": "g075",
+    "question": "Review in four weeks after a new drug.",
+    "must_chunk": "H-11",
+    "oos": false
+  },
+  {
+    "id": "g076",
+    "question": "Do not take two doses at once.",
+    "must_chunk": "H-12",
+    "oos": false
+  },
+  {
+    "id": "g077",
+    "question": "Refer if still high on three drugs.",
+    "must_chunk": "H-18",
+    "oos": false
+  },
+  {
+    "id": "g078",
+    "question": "Pregnancy is not treated with this ladder.",
+    "must_chunk": "H-17",
+    "oos": false
+  },
+  {
+    "id": "g079",
+    "question": "28-day refill at PHC.",
+    "must_chunk": "N-07",
+    "oos": false
+  },
+  {
+    "id": "g080",
+    "question": "First-line is amlodipine not losartan.",
+    "must_chunk": "N-03",
+    "oos": false
+  },
+  {
+    "id": "o001",
+    "question": "What artemether dose for severe malaria?",
+    "must_chunk": null,
+    "oos": true
+  },
+  {
+    "id": "o002",
+    "question": "How do I set the INR for warfarin this week?",
+    "must_chunk": null,
+    "oos": true
+  },
+  {
+    "id": "o003",
+    "question": "Childhood asthma: salbutamol nebule schedule?",
+    "must_chunk": null,
+    "oos": true
+  },
+  {
+    "id": "o004",
+    "question": "Which chemotherapy cycle follows FOLFOX?",
+    "must_chunk": null,
+    "oos": true
+  },
+  {
+    "id": "o005",
+    "question": "How to reduce a Colles fracture in plaster?",
+    "must_chunk": null,
+    "oos": true
+  },
+  {
+    "id": "o006",
+    "question": "COVID vaccine booster interval for a 12-year-old?",
+    "must_chunk": null,
+    "oos": true
+  },
+  {
+    "id": "o007",
+    "question": "SSRI choice for first-episode depression?",
+    "must_chunk": null,
+    "oos": true
+  },
+  {
+    "id": "o008",
+    "question": "Measles isolation days in the ward?",
+    "must_chunk": null,
+    "oos": true
+  },
+  {
+    "id": "o009",
+    "question": "Cataract surgery intraocular lens power?",
+    "must_chunk": null,
+    "oos": true
+  },
+  {
+    "id": "o010",
+    "question": "Appendicitis \u2014 start antibiotics at home?",
+    "must_chunk": null,
+    "oos": true
+  },
+  {
+    "id": "o011",
+    "question": "What plaster of Paris layers for a tibia fracture?",
+    "must_chunk": null,
+    "oos": true
+  },
+  {
+    "id": "o012",
+    "question": "Malaria RDT negative, still give ACT?",
+    "must_chunk": null,
+    "oos": true
+  },
+  {
+    "id": "o013",
+    "question": "Warfarin tablet colour for INR 4.5?",
+    "must_chunk": null,
+    "oos": true
+  },
+  {
+    "id": "o014",
+    "question": "Salbutamol inhaler for a toddler wheeze now?",
+    "must_chunk": null,
+    "oos": true
+  },
+  {
+    "id": "o015",
+    "question": "Cancer pain: start morphine from this protocol?",
+    "must_chunk": null,
+    "oos": true
+  },
+  {
+    "id": "o016",
+    "question": "How many measles vaccines after exposure?",
+    "must_chunk": null,
+    "oos": true
+  },
+  {
+    "id": "o017",
+    "question": "Depression: can I stop the SSRI from this chat?",
+    "must_chunk": null,
+    "oos": true
+  },
+  {
+    "id": "o018",
+    "question": "COVID vaccine and amlodipine interaction?",
+    "must_chunk": null,
+    "oos": true
+  },
+  {
+    "id": "o019",
+    "question": "Fracture clinic next-step after X-ray?",
+    "must_chunk": null,
+    "oos": true
+  },
+  {
+    "id": "o020",
+    "question": "Chemotherapy antiemetic protocol day 1?",
+    "must_chunk": null,
+    "oos": true
+  }
+]

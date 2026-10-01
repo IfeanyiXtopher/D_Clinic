@@ -1,0 +1,40 @@
+{
+  "updated_at": "2026-09-27",
+  "tracking_uri": "sqlite:///mlflow.db",
+  "models": [
+    {
+      "name": "missed_visit_risk",
+      "version": "missed_visit_v1",
+      "stage": "Production",
+      "artifact": "D_Clinic_Backend/ml/artifacts/missed_visit_v1.joblib",
+      "prompt_version": null,
+      "metrics": {
+        "test_auc": 0.640,
+        "lift_at_30": 1.34,
+        "ece": 0.041
+      }
+    },
+    {
+      "name": "sms_intent",
+      "version": "sms_intent_v1",
+      "stage": "Production",
+      "artifact": "D_Clinic_Backend/chatbot/artifacts/sms_intent_v1.joblib",
+      "prompt_version": "nlu_v1",
+      "metrics": {
+        "rules_accuracy": 0.79,
+        "tfidf_accuracy": 0.76
+      }
+    },
+    {
+      "name": "worker_summary",
+      "version": "template",
+      "stage": "Production",
+      "artifact": null,
+      "prompt_version": "summary_v1",
+      "metrics": {
+        "factuality": 1.0,
+        "pii_rate": 0.0
+      }
+    }
+  ]
+}

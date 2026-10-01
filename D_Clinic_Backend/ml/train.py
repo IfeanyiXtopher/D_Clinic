@@ -444,6 +444,21 @@ def main() -> None:
     truth = (args.csv or Path(__file__).resolve().parents[2] / "data" / "synth" / "out") / "_truth_patients.csv"
     write_report(result, splits, truth_path=truth)
     log_mlflow(result)
+    try:
+        from ml.registry import upsert
+
+        test_m = result["metrics"]["test"][result["chosen"]]
+        upsert(
+            "missed_visit_risk",
+            MODEL_VERSION,
+            artifact=str(path.relative_to(path.parents[2])),
+            metrics={
+                "test_auc": round(float(test_m["auc"]), 3),
+                "lift_at_30": round(float(test_m["cap_lift"]), 2),
+            },
+        )
+    except Exception:
+        pass
 
     print(f"chosen: {result['chosen']}   artifact: {path}   report: {REPORT_PATH}")
     for split in ["valid", "test"]:

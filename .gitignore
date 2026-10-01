@@ -34,3 +34,6 @@ D_Clinic_Frontend/dist/
 # Docker volumes
 pgdata/
 redisdata/
+
+# Offline pack (rebuilt by make bundle)
+dist/

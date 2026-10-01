@@ -329,3 +329,88 @@ class WorklistItem(Base):
         Index("index_worklist_items_on_facility_id_and_list_date", "facility_id", "list_date"),
         Index("index_worklist_items_on_patient_id", "patient_id"),
     )
+
+
+class LlmRequest(Base):
+    """Audit row for one gateway call (Step 4). Packet bodies are not stored."""
+
+    __tablename__ = "llm_requests"
+
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=_uuid)
+    case_code: Mapped[str] = mapped_column(String, nullable=False, unique=True)
+    patient_id: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True), ForeignKey("patients.id"))
+    purpose: Mapped[str] = mapped_column(String, nullable=False, default="summary")
+    provider: Mapped[str] = mapped_column(String, nullable=False)
+    model: Mapped[str | None] = mapped_column(String)
+    prompt_version: Mapped[str] = mapped_column(String, nullable=False)
+    packet_hash: Mapped[str] = mapped_column(String, nullable=False)
+    deid_ok: Mapped[bool] = mapped_column(Boolean, nullable=False)
+    postcheck_ok: Mapped[bool] = mapped_column(Boolean, nullable=False)
+    fallback_used: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+    source: Mapped[str] = mapped_column(String, nullable=False)  # model | template | refused
+    refusal_reason: Mapped[str | None] = mapped_column(String)
+    latency_ms: Mapped[int | None] = mapped_column(Integer)
+    prompt_tokens: Mapped[int | None] = mapped_column(Integer)
+    completion_tokens: Mapped[int | None] = mapped_column(Integer)
+    error: Mapped[str | None] = mapped_column(String)
+    created_at: Mapped[datetime] = mapped_column(DateTime, nullable=False)
+    expires_at: Mapped[datetime] = mapped_column(DateTime, nullable=False)
+
+    __table_args__ = (
+        Index("index_llm_requests_on_patient_id", "patient_id"),
+        Index("index_llm_requests_on_created_at", "created_at"),
+    )
+
+
+class DialogueSession(Base):
+    """SMS dialogue state (Step 5). Phone numbers are not stored here."""
+
+    __tablename__ = "dialogue_sessions"
+
+    id: Mapped[str] = mapped_column(String, primary_key=True)
+    channel: Mapped[str] = mapped_column(String, nullable=False, default="simulator")
+    patient_id: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True), ForeignKey("patients.id"))
+    appointment_id: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True), ForeignKey("appointments.id"))
+    state: Mapped[str] = mapped_column(String, nullable=False, default="idle")
+    language: Mapped[str] = mapped_column(String, nullable=False, default="en")
+    offered_slots: Mapped[list] = mapped_column(JSONB, nullable=False, default=list)
+    pending_date: Mapped[date | None] = mapped_column(Date)
+    visit_date: Mapped[date | None] = mapped_column(Date)
+    created_at: Mapped[datetime] = mapped_column(DateTime, nullable=False)
+    updated_at: Mapped[datetime] = mapped_column(DateTime, nullable=False)
+
+    __table_args__ = (Index("index_dialogue_sessions_on_patient_id", "patient_id"),)
+
+
+class StaffTask(Base):
+    """Callback created when the chatbot must not continue (medical, unknown number)."""
+
+    __tablename__ = "staff_tasks"
+
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=_uuid)
+    patient_id: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True), ForeignKey("patients.id"))
+    kind: Mapped[str] = mapped_column(String, nullable=False)
+    status: Mapped[str] = mapped_column(String, nullable=False, default="open")
+    created_at: Mapped[datetime] = mapped_column(DateTime, nullable=False)
+
+    __table_args__ = (Index("index_staff_tasks_on_status", "status"),)
+
+
+class AuditEvent(Base):
+    """Append-only log of staff actions (Step 8). No names, phones or addresses."""
+
+    __tablename__ = "audit_events"
+
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=_uuid)
+    action: Mapped[str] = mapped_column(String, nullable=False)
+    actor_id: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True), ForeignKey("users.id"))
+    subject_type: Mapped[str | None] = mapped_column(String)
+    subject_id: Mapped[str | None] = mapped_column(String)
+    facility_id: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True), ForeignKey("facilities.id"))
+    extra: Mapped[dict] = mapped_column(JSONB, nullable=False, default=dict)
+    created_at: Mapped[datetime] = mapped_column(DateTime, nullable=False)
+
+    __table_args__ = (
+        Index("index_audit_events_on_action_and_created_at", "action", "created_at"),
+        Index("index_audit_events_on_subject", "subject_type", "subject_id"),
+    )
