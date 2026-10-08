@@ -20,23 +20,15 @@ from sqlalchemy import text
 
 from app.db import engine
 from app.metrics import Timer, inc, render_prometheus
-from app.settings import REPO_ROOT
+from app.settings import REPO_ROOT, settings
 from ml.predict import score_upcoming, write_scores
 
 app = FastAPI(title="Followup-AI", version="0.10.0",
               description="AI follow-up layer for a hypertension/diabetes program (Simple-compatible).")
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "http://localhost:5173",
-        "http://127.0.0.1:5173",
-        "http://localhost:5174",
-        "http://127.0.0.1:5174",
-        "http://localhost:4173",
-        "http://127.0.0.1:4173",
-        "http://localhost:8010",
-        "http://127.0.0.1:8010",
-    ],
+    allow_origins=settings.cors_origin_list,
+    allow_origin_regex=r"https://([a-z0-9-]+\.)*vercel\.app",
     allow_methods=["*"],
     allow_headers=["*"],
 )

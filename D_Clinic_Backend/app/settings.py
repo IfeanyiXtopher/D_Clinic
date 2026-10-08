@@ -55,6 +55,20 @@ class Settings(BaseSettings):
     ollama_embed_model: str = "nomic-embed-text"
     openai_embed_model: str = "text-embedding-3-small"
 
+    # Browser origins allowed to call this API (comma-separated).
+    cors_origins: str = (
+        "http://localhost:5173,http://127.0.0.1:5173,"
+        "http://localhost:5174,http://127.0.0.1:5174,"
+        "http://localhost:4173,http://127.0.0.1:4173,"
+        "https://clinic.1960heritage.com,"
+        "https://d-clinic-one.vercel.app"
+    )
+
+    @computed_field  # type: ignore[misc]
+    @property
+    def cors_origin_list(self) -> list[str]:
+        return [o.strip().rstrip("/") for o in self.cors_origins.split(",") if o.strip()]
+
     @computed_field  # type: ignore[misc]
     @property
     def database_url(self) -> str:
