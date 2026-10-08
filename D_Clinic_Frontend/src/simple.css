@@ -386,6 +386,16 @@ body.theme-simple .s-actions.is-done .s-btn.remove {
 }
 .s-patient-head a { font-weight: 700; color: #16324f; text-decoration: none; font-size: 1rem; min-width: 0; }
 .s-patient-head a:hover { text-decoration: underline; }
+.s-patient-head a.s-case-link {
+  color: #1d4ed8;
+  text-decoration: underline;
+  text-underline-offset: 0.18em;
+  text-decoration-thickness: 1px;
+}
+.s-patient-head a.s-case-link:hover,
+.s-patient-head a.s-case-link:focus-visible {
+  color: #1e3a8a;
+}
 .s-head-right {
   display: flex;
   flex-direction: column;

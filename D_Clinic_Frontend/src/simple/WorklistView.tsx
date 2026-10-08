@@ -186,7 +186,9 @@ function SimpleCard({ item, asOf, onAct }: { item: WorklistItem; asOf: string; o
     <article className="s-patient">
       <div className="s-patient-head">
         <div className="s-case">
-          <Link to={`/patients/${item.patient_id}?as_of=${asOf}`}>Case {shortId(item.patient_id)}</Link>
+          <Link className="s-case-link" to={`/patients/${item.patient_id}?as_of=${asOf}`}>
+            Case {shortId(item.patient_id)}
+          </Link>
           {done ? <span className="s-recorded-tag">Recorded</span> : null}
         </div>
         <div className="s-head-right">
